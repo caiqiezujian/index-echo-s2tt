@@ -1,0 +1,9 @@
+{
+  "type": "s2tt.transports.simulstream.IndexEchoSpeechProcessor",
+  "model_dir": "/root/autodl-tmp/index-echo/models/Index-Echo-S2TT-2B",
+  "model_size": "2B",
+  "device": "cuda:0",
+  "source_language": "en",
+  "target_language": "zh",
+  "speech_chunk_size": 1.0
+}

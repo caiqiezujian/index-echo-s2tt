@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "index-echo-s2tt"
+version = "0.1.0"
+description = "Causal streaming speech translation with Index-Echo"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.26,<3", "websockets==15.0.1"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<9", "hypothesis>=6,<7", "ruff>=0.9,<1"]
+eval = ["sacrebleu>=2.4,<3"]
+
+[project.scripts]
+echo-s2tt = "s2tt.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+s2tt = ["web/*", "resources/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["real_model: requires audited Echo weights and CUDA", "integration: local transport integration"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]

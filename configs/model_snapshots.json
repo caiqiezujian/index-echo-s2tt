@@ -1,0 +1,211 @@
+{
+  "verified_on": "2026-10-08",
+  "snapshots": {
+    "2B": {
+      "source": "modelscope",
+      "model_id": "IndexTeam/Index-Echo-S2TT-2B",
+      "revision": "b98e6e1d15cfd3d1d22093289a7f1b9d9fe66972",
+      "metadata_url": "https://www.modelscope.cn/api/v1/models/IndexTeam/Index-Echo-S2TT-2B/repo/files?Revision=b98e6e1d15cfd3d1d22093289a7f1b9d9fe66972&Recursive=true",
+      "files": [
+        {
+          "path": ".gitattributes",
+          "bytes": 2183,
+          "sha256": "f6e20310ef2abc928201cd1f2736c271b10470953f633be5fd5fd0633ef13907"
+        },
+        {
+          "path": "MODEL_INFO.json",
+          "bytes": 354,
+          "sha256": "11938fff0c933ec37de31b5ad18f4ce603b8d802e700ea864c320dd262a5cd45"
+        },
+        {
+          "path": "README.md",
+          "bytes": 11456,
+          "sha256": "291aa556b61c1132d2f17bdb3103051d90720c58884dcf4b741b57d3b07fe950"
+        },
+        {
+          "path": "audio_config.json",
+          "bytes": 1922,
+          "sha256": "9e50645f11a66de69f6118240a41d624e35b6ac3ee7767fc4f606a4a2ab26732"
+        },
+        {
+          "path": "audio_tower.safetensors",
+          "bytes": 1295908584,
+          "sha256": "0dc5e5ac9c5cdc6704f5565252beb145a3eab0b24ab331a4f9c4d769f42cd074"
+        },
+        {
+          "path": "config.json",
+          "bytes": 440,
+          "sha256": "4c38fcbb9d8bc1bae479c0d0a999e5d94a38ba65f120a233e433bd7fddd60fde"
+        },
+        {
+          "path": "connector.safetensors",
+          "bytes": 33554912,
+          "sha256": "ec0d62780536a76b19d306759af086295a9d29ca82eae47b6a6ba3c993162073"
+        },
+        {
+          "path": "infer.py",
+          "bytes": 14803,
+          "sha256": "558b2a7d5f8f2ba9ec7651562b1a40602ef06c40f75ebbb2e690fb82fd5d347e"
+        },
+        {
+          "path": "llm/.gitattributes",
+          "bytes": 1570,
+          "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930"
+        },
+        {
+          "path": "llm/LICENSE",
+          "bytes": 11343,
+          "sha256": "50cbab8a892c5f2993b8c7351a99182507472def3b1374558308605d99b86b32"
+        },
+        {
+          "path": "llm/README.md",
+          "bytes": 3721,
+          "sha256": "50ca45b87d976d9850de95ad00e76fba77e105c2cdef1093b8e3bb261d9a1787"
+        },
+        {
+          "path": "llm/config.json",
+          "bytes": 2908,
+          "sha256": "ed1c1723241f23f7f4e23430759cbd7dcfb4103cbdfe052bfe7626b57c2615b4"
+        },
+        {
+          "path": "llm/merges.txt",
+          "bytes": 3353259,
+          "sha256": "a9d356d7bdf1ef4949e3e748e95b8e10ad9d4e2e838eddc38a0a7b6b94d1db8d"
+        },
+        {
+          "path": "llm/model-00000-of-00001.safetensors",
+          "bytes": 4548216776,
+          "sha256": "32ecbbf705b6a8c6a850e065a5bfd1a9598620165da6ad8e2a075e01d973958f"
+        },
+        {
+          "path": "llm/model.safetensors.index.json",
+          "bytes": 56876,
+          "sha256": "acc5521727ab743702bf8372bebdd316684428a16cbcbb81ad10092813724f1b"
+        },
+        {
+          "path": "llm/preprocessor_config.json",
+          "bytes": 390,
+          "sha256": "27225450ac9c6529872ee1924fcb0962ff5634834f817040f444118116f4e516"
+        },
+        {
+          "path": "llm/tokenizer.json",
+          "bytes": 12807196,
+          "sha256": "fe000e3ed39ed12b8d2481d527d44f93c65d37e87645d2dcc80d1bf9d50d2927"
+        },
+        {
+          "path": "llm/tokenizer_config.json",
+          "bytes": 16712,
+          "sha256": "e611fbccc7c29ef3b1cafb1cb7ea548d189968632901d678fd62be68c47885de"
+        },
+        {
+          "path": "llm/video_preprocessor_config.json",
+          "bytes": 386,
+          "sha256": "d039cd7d88b3502a99edd455496b75b44ecf7dd3b3669748bafac37e6cecc085"
+        },
+        {
+          "path": "llm/vocab.json",
+          "bytes": 6722759,
+          "sha256": "ce99b4cb2983d118806ce0a8b777a35b093e2000a503ebde25853284c9dfa003"
+        },
+        {
+          "path": "requirements.txt",
+          "bytes": 693,
+          "sha256": "a9689c2166ea8b0da6e2854b0e9582b8395eda386150dac2424ad1427e56dd5e"
+        }
+      ]
+    },
+    "9B": {
+      "source": "modelscope",
+      "model_id": "IndexTeam/Index-Echo-S2TT-9B",
+      "revision": "c4a9dc5689c402963fb231139485064b9aa0cccf",
+      "metadata_url": "https://www.modelscope.cn/api/v1/models/IndexTeam/Index-Echo-S2TT-9B/repo/files?Revision=c4a9dc5689c402963fb231139485064b9aa0cccf&Recursive=true",
+      "files": [
+        {
+          "path": ".gitattributes",
+          "bytes": 2183,
+          "sha256": "f6e20310ef2abc928201cd1f2736c271b10470953f633be5fd5fd0633ef13907"
+        },
+        {
+          "path": "MODEL_INFO.json",
+          "bytes": 340,
+          "sha256": "d9c0ae92053266fc1b369196fe6d322ce828d8917575b48a493cdb8bb24e33c8"
+        },
+        {
+          "path": "README.md",
+          "bytes": 11498,
+          "sha256": "285400dd47e2a505a9802f49fbbe95633ccc13d0594f51ab509a24be2081dd51"
+        },
+        {
+          "path": "audio_config.json",
+          "bytes": 1922,
+          "sha256": "9e50645f11a66de69f6118240a41d624e35b6ac3ee7767fc4f606a4a2ab26732"
+        },
+        {
+          "path": "audio_tower.safetensors",
+          "bytes": 1295908576,
+          "sha256": "0764050ce032b5d428a9e4c691733784e22da5c376152dea047390607ec3db30"
+        },
+        {
+          "path": "config.json",
+          "bytes": 440,
+          "sha256": "49d90de2972c0101986493b6830736401b31383c19ee6cef4efc1568d808b6d8"
+        },
+        {
+          "path": "connector.safetensors",
+          "bytes": 33554696,
+          "sha256": "8dc71b53a0450094153907e80ac2cdda6411a380148134adf668b677a86f5046"
+        },
+        {
+          "path": "infer.py",
+          "bytes": 15458,
+          "sha256": "811147455f8d3ae459cd649cd7e69f8b3febcdd6047459ddc3d0c33f1b62a697"
+        },
+        {
+          "path": "llm/.gitattributes",
+          "bytes": 1570,
+          "sha256": "34448b82c17d60fec9b65b1f093c115ddbaadc04beb1b0140b6bfed2e012a930"
+        },
+        {
+          "path": "llm/README.md",
+          "bytes": 3705,
+          "sha256": "e5fb9a49c5b5eea08839180eef484c97743be241189ccb4a1f4d830514c1f0cb"
+        },
+        {
+          "path": "llm/config.json",
+          "bytes": 1893,
+          "sha256": "df523c07ddb554e904966a64052e75a410f81dc7ea18400199f67bd1d114fb5c"
+        },
+        {
+          "path": "llm/merges.txt",
+          "bytes": 3353259,
+          "sha256": "a9d356d7bdf1ef4949e3e748e95b8e10ad9d4e2e838eddc38a0a7b6b94d1db8d"
+        },
+        {
+          "path": "llm/model.safetensors",
+          "bytes": 17907656616,
+          "sha256": "42e924f739466a73f4f78f58d5ab0ea58475037dfc4724737ce3d4d68019fc72"
+        },
+        {
+          "path": "llm/tokenizer.json",
+          "bytes": 12807196,
+          "sha256": "fe000e3ed39ed12b8d2481d527d44f93c65d37e87645d2dcc80d1bf9d50d2927"
+        },
+        {
+          "path": "llm/tokenizer_config.json",
+          "bytes": 16713,
+          "sha256": "3891e840d7dc5fca0af33d3a25083a735e36fe06214e3f707024820cb6b9f89c"
+        },
+        {
+          "path": "llm/vocab.json",
+          "bytes": 6722759,
+          "sha256": "ce99b4cb2983d118806ce0a8b777a35b093e2000a503ebde25853284c9dfa003"
+        },
+        {
+          "path": "requirements.txt",
+          "bytes": 693,
+          "sha256": "a9689c2166ea8b0da6e2854b0e9582b8395eda386150dac2424ad1427e56dd5e"
+        }
+      ]
+    }
+  }
+}

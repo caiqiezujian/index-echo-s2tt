@@ -1,0 +1,19 @@
+{
+  "verified_on": "2026-10-08",
+  "sources": [
+    {
+      "name": "Index-Translate",
+      "url": "https://github.com/bilibili/Index-Translate",
+      "commit": "f940606e8faf18fca4f4ccfd36185e07415f848f",
+      "license": "Apache-2.0",
+      "role": "official Echo component and generation recipe"
+    },
+    {
+      "name": "simulstream",
+      "url": "https://github.com/hlt-mt/simulstream",
+      "commit": "b9952dd95a4672ba2806d1f0cd778b7652514697",
+      "license": "Apache-2.0",
+      "role": "optional SpeechProcessor compatibility contract"
+    }
+  ]
+}

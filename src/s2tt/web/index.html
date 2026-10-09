@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Echo · 实时中文字幕</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<main>
+  <header><span class="brand">ECHO <span>语音翻译</span></span><span id="badge" class="badge">未连接</span></header>
+  <section class="intro"><p class="eyebrow">ENGLISH → 中文</p><h1>让语言，跟上声音。</h1><p>连接你的翻译服务，开始接收英语语音。草稿随讲话更新，已提交内容单独保留。</p></section>
+  <section class="toolbar"><button id="start">开始收音</button><button id="stop" disabled>结束并排空</button><button id="cancel" disabled>取消</button><span id="status" role="status">等待连接</span></section>
+  <section class="captions"><article><div class="section-label">已提交 <span>COMMITTED</span></div><div id="committed" class="transcript" aria-live="polite">译文将在这里出现。</div></article><article class="draft-card"><div class="section-label">当前草稿 <span>DRAFT</span></div><div id="draft" class="transcript" aria-live="polite">等待语音输入…</div><p id="notice">草稿可能随新增语音调整。</p></article></section>
+  <section class="stats"><div><span>已接收</span><strong id="received">0.00 s</strong></div><div><span>已处理</span><strong id="used">0.00 s</strong></div><div><span>音频积压</span><strong id="backlog">0.00 s</strong></div><div><span>明确更正</span><strong id="corrections">0</strong></div></section>
+  <details><summary>连接设置</summary><div class="settings"><label>WebSocket 地址<input id="address" value="ws://127.0.0.1:8765" autocomplete="off"></label><label>访问令牌（如服务需要）<input id="token" type="password" autocomplete="off"></label><label>术语表（每行一项，例如 Echo:回声）<textarea id="glossary" rows="3"></textarea></label></div></details>
+  <footer>单会话实验服务 · 麦克风需要 localhost 或 HTTPS 页面 · 不会将音频发送到第三方 API</footer>
+</main><script src="app.js" defer></script>
+</body></html>

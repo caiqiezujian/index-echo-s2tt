@@ -1,0 +1,9 @@
+{
+  "backend": {"size": "9B", "device": "cuda:0", "max_new_tokens": 512},
+  "session": {
+    "source_language": "en", "target_language": "zh", "sample_rate": 16000,
+    "channels": 1, "update_seconds": 1.0, "max_buffer_seconds": 45.0,
+    "silence_seconds": 0.8, "vad_threshold": 0.008, "policy": "la2",
+    "holdback_chars": 6, "context_windows": 3, "glossary": []
+  }
+}
