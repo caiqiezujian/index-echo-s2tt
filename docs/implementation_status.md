@@ -14,18 +14,20 @@
 - 可选 simulstream 适配、服务器配置、项目环境安装器、CPU CI 与真实模型测试入口。
 - 本地 JSON 统一模型目录/运行/服务/网页配置，命令行兼容覆盖；配置相对路径固定以配置文件目录解析。
 - 真实后端导入前强制离线/关闭 Hub 遥测，网页从本地端点读取公开默认值；缺失权重不触发下载。
+- Docker 现有环境可用 `python3 run_s2tt.py` 或 Bash 启动脚本直接运行源码，无需安装项目命令；脚本不补装依赖。
 
 ## 验证结果
 
-执行记录见本地 `reports/implementation_20261009/` 和 `reports/configuration_20261009/`。下列检查在 Windows、Python 3.12.14 上执行；真实硬件结果不由软件检查推定。报告目录不上传 GitHub。
+执行记录见本地 `reports/implementation_20261009/`、`reports/configuration_20261009/` 和 `reports/source_startup_20261009/`。下列检查在 Windows、Python 3.12.14 上执行；Bash 启动参数合同使用 Git Bash。真实硬件结果不由软件检查推定。报告目录不上传 GitHub。
 
 | 检查 | 状态与范围 |
 |---|---|
-| 本地测试套件 | **PASS：85 passed；3 个 real_model 测试因缺少 CUDA/权重 SKIPPED**。覆盖单元/性质/配置/会话/回放/本地真实 WebSocket 合同；模拟后端标记 model_kind=mock |
+| 本地测试套件 | **PASS：92 passed；3 个 real_model 测试因缺少 CUDA/权重 SKIPPED**。覆盖单元/性质/配置/源码启动/会话/回放/本地真实 WebSocket 合同；模拟后端标记 model_kind=mock |
 | simulstream 实际审查接口 | **PASS：冻结来源的 SpeechProcessor 接口合同**，使用 mock；不是上游完整服务的 GPU 验收 |
 | 30分钟音频逻辑回归 | **PASS：加速的合成音频/mock 测试**，检查缓存与事件有界；非30分钟真实GPU同传 |
 | 浏览器麦克风流程 | **PASS：Chrome 无头浏览器+合成麦克风+mock**；本地 JSON 端口/术语默认值、开始、收音、End 排空、再次开始与取消，无页面脚本错误 |
 | 配置与离线合同 | **PASS：配置优先级、相对路径基准、非法字段拒绝、禁用 socket 的 mock probe、真实本地模型缺失 BLOCKED、框架导入前离线标志**；不是完整 CUDA 离线推理验收 |
+| 现有容器源码启动合同 | **PASS：禁用 editable 安装路径的帮助/mock probe、缺失依赖报错、两份 Bash 默认配置/自定义路径/参数传递**；不是用户 Docker GPU 环境验收 |
 | 静态检查、安装器与打包 | **PASS：Ruff、JavaScript/Bash 语法检查、CPU 依赖检查及 wheel 资源核对**；CUDA 安装脚本仅检查语法，未在目标服务器执行 |
 | 2B/9B 真实权重、CUDA、英译中 | **BLOCKED：本地测试环境没有目标CUDA环境与完整权重** |
 | 真实同传语义质量、延迟、峰值显存、长流 | **BLOCKED：需服务器+音频数据验收** |
@@ -33,7 +35,7 @@
 
 ## 服务器验收顺序
 
-1. 激活 Python 3.12 环境，运行安装器、自检和固定 2B 下载。
+1. 使用已准备的 Python 3.12 容器环境，核对依赖和固定 2B 文件；缺环境时才使用可选安装器。执行环境自检。
 2. 官方中文→英文健康检查，保存原始日志。
 3. 英文完整/短前缀 probe，人工核查源转写、中文语义、否定/数字/专名。
 4. 设置真实测试环境变量，执行三项 real_model 合同测试；不将格式检查当语义评测。

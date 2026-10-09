@@ -15,6 +15,36 @@
 
 完整 2B 包约 5.90GB，9B 约 19.26GB。模型存放仓库之外。不要额外下载完整基础 Qwen3-Omni 或另一个文本解码器。
 
+## Docker 现有环境：直接运行源码
+
+容器已经有 Python/推理环境时，直接使用当前 `python3`。不需要安装本项目、不需要 `echo-s2tt` 命令，也不需要新建 venv/conda 环境。启动脚本不安装依赖、不下载权重；缺少的包由你补齐。纯逻辑需要 Python 3.10+，参考 CUDA 模型环境采用 Python 3.12。
+
+先在 `configs/5090_2b.json` 修改 `backend.model_dir` 和 `server.report_dir` 为容器内的实际路径，然后在仓库目录运行：
+
+```bash
+bash deploy/start_server.sh
+# 另一个容器终端启动网页：
+bash deploy/start_web.sh
+```
+
+两份脚本默认使用同一份 2B 配置，前台运行，Ctrl+C 停止。也可指定其他配置：
+
+```bash
+bash deploy/start_server.sh configs/5090_9b.json
+bash deploy/start_web.sh configs/5090_9b.json
+```
+
+默认配置及源码路径以启动脚本位置定位，因此从其他目录用脚本绝对路径启动也可。你显式传入的相对配置/输入路径仍以当前工作目录为基准。额外命令参数放在配置路径后面，例如 `bash deploy/start_server.sh configs/5090_2b.json --port 8766`。
+
+直接 Python 脚本入口也可使用，适合探测与回放：
+
+```bash
+python3 run_s2tt.py --help
+python3 run_s2tt.py probe en_smoke.wav --config configs/5090_2b.json --out /tmp/en_zh_probe.jsonl
+```
+
+`run_s2tt.py` 自动加载本仓库的 `src/`，无需设置 PYTHONPATH 或注册命令。依赖缺失会报告包名；CUDA、模型版本和文件校验继续按原合同执行。
+
 ## 本地配置与离线运行
 
 统一配置采用本地 **JSON**，入口为 `configs/5090_2b.json` 和 `configs/5090_9b.json`。无需 YAML 依赖。修改配置中的 Linux 本地路径后即可启动；配置文件及权重都从本机读取。
@@ -31,9 +61,9 @@
 默认 2B 路径为 `/root/autodl-tmp/index-echo/models/Index-Echo-S2TT-2B`，日志写入 `/root/autodl-tmp/index-echo/reports/live`。实际目录不同就修改对应字段；更改端口时也要同步 `server.origins` 和 SSH 转发端口。
 
 ```bash
-echo-s2tt serve --config configs/5090_2b.json
+bash deploy/start_server.sh configs/5090_2b.json
 # 另一个终端使用同一份配置：
-echo-s2tt web --config configs/5090_2b.json
+bash deploy/start_web.sh configs/5090_2b.json
 ```
 
 显式命令参数优先于配置文件；模型路径优先级为 `--model-dir` → `backend.model_dir` → `ECHO_MODEL_DIR`。配置内相对路径以配置文件所在目录为基准，命令行相对路径以当前工作目录为基准。未知字段/非法类型报错，避免拼写错误被静默忽略。旧启动命令继续可用。
@@ -52,22 +82,22 @@ python -m venv .venv
 source .venv/bin/activate
 # Windows PowerShell 改用 .venv\Scripts\Activate.ps1
 python -m pip install -e '.[dev]'
-ruff check src tests
+ruff check run_s2tt.py src tests
 pytest
-echo-s2tt serve --backend mock
+python3 run_s2tt.py serve --backend mock
 ```
 
 另一个终端运行：
 
 ```bash
-echo-s2tt web
+python3 run_s2tt.py web
 ```
 
 访问 `http://127.0.0.1:8080`，点击开始收音。模拟模式醒目标识，不进行真实翻译。结束会等待音频尾包与模型任务；取消不会把残缺内容标记为成功。
 
 ## AutoDL 5090 安装
 
-先选择 5090 32GB、较新的 Ubuntu 镜像，建立独立 Python 3.12 环境并安装系统 FFmpeg。建议测试 9B 时主机内存 64GB、存储约 100GB；这是准备预算，非实测最低配置。详细步骤见 [环境准备指南](docx/06_AutoDL_5090环境准备.md)。
+容器已备好环境时，使用上面的源码启动方式，直接跳过本节安装器。以下是需要新建环境时的可选流程：选择 5090 32GB、较新的 Ubuntu 镜像，建立独立 Python 3.12 环境并安装系统 FFmpeg。建议测试 9B 时主机内存 64GB、存储约 100GB；这是准备预算，非实测最低配置。详细步骤见 [环境准备指南](docx/06_AutoDL_5090环境准备.md)。
 
 ```bash
 export INDEX_ROOT=/root/autodl-tmp/index-echo
@@ -94,7 +124,7 @@ python "$INDEX_ROOT/models/Index-Echo-S2TT-2B/infer.py" zh_smoke.wav \
 准备 PCM16 WAV 英语音频 `en_smoke.wav`，测试完整输入和真实截断前缀：
 
 ```bash
-echo-s2tt probe en_smoke.wav \
+python3 run_s2tt.py probe en_smoke.wav \
   --model-dir "$INDEX_ROOT/models/Index-Echo-S2TT-2B" \
   --config configs/5090_2b.json --prefix-seconds 2,4,8,full \
   --out "$INDEX_ROOT/reports/en_zh_probes.jsonl"
@@ -105,17 +135,17 @@ echo-s2tt probe en_smoke.wav \
 ## 因果回放与实时服务
 
 ```bash
-echo-s2tt replay en_smoke.wav \
+python3 run_s2tt.py replay en_smoke.wav \
   --model-dir "$INDEX_ROOT/models/Index-Echo-S2TT-2B" --config configs/5090_2b.json \
   --mode causal_fast --out "$INDEX_ROOT/reports/causal_fast.jsonl"
 
-echo-s2tt replay en_smoke.wav \
+python3 run_s2tt.py replay en_smoke.wav \
   --model-dir "$INDEX_ROOT/models/Index-Echo-S2TT-2B" --config configs/5090_2b.json \
   --mode wallclock_1x --out "$INDEX_ROOT/reports/wallclock.jsonl"
 
-echo-s2tt summarize "$INDEX_ROOT/reports/wallclock.jsonl"
+python3 run_s2tt.py summarize "$INDEX_ROOT/reports/wallclock.jsonl"
 
-echo-s2tt serve \
+python3 run_s2tt.py serve \
   --model-dir "$INDEX_ROOT/models/Index-Echo-S2TT-2B" --config configs/5090_2b.json \
   --report-dir "$INDEX_ROOT/reports/live"
 ```
@@ -128,7 +158,7 @@ echo-s2tt serve \
 ssh -p <SSH端口> -L 8080:127.0.0.1:8080 -L 8765:127.0.0.1:8765 root@<AutoDL主机>
 ```
 
-在服务器另一个终端执行 `echo-s2tt web`；本地打开 `http://127.0.0.1:8080`。麦克风权限通过浏览器申请。公网部署自行配置 HTTPS、WSS 与反向代理；非 loopback WebSocket 绑定要求设置 `S2TT_AUTH_TOKEN`，并通过 `--origin` 显式允许网页来源。
+在服务器另一个终端执行 `python3 run_s2tt.py web`；本地打开 `http://127.0.0.1:8080`。麦克风权限通过浏览器申请。公网部署自行配置 HTTPS、WSS 与反向代理；非 loopback WebSocket 绑定要求设置 `S2TT_AUTH_TOKEN`，并通过 `--origin` 显式允许网页来源。
 
 也可按“本地配置与离线运行”一节让服务和网页同时读取同一份配置，省去重复传入路径和端口。
 
@@ -143,7 +173,7 @@ ssh -p <SSH端口> -L 8080:127.0.0.1:8080 -L 8765:127.0.0.1:8765 root@<AutoDL主
 
 可选适配器的配置见 `configs/simulstream_processor.json`；作为上游 `speech_processor` 配置使用，`type` 指向完整类路径。审查的上游 commit 为 `b9952dd95a4672ba2806d1f0cd778b7652514697`，模型和上游运行依赖需在目标环境核对。
 
-独立文本评分环境安装 `.[eval]` 后，可用 `echo-s2tt score --hypotheses hypotheses.txt --references references.txt` 计算成对文本的 chrF。参考数据不进入模型提示或在线路径。
+独立文本评分环境安装 `.[eval]` 后，可用 `python3 run_s2tt.py score --hypotheses hypotheses.txt --references references.txt` 计算成对文本的 chrF。参考数据不进入模型提示或在线路径。
 
 ## 测试与目录
 

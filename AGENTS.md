@@ -8,14 +8,14 @@ This repository implements an Index-Echo English-to-Chinese streaming prototype.
 
 ## Build, Test, and Development Commands
 
-Use an isolated project environment. Distinguish CPU/mock validation from real-model acceptance.
+Use the existing container environment when provided. Distinguish CPU/mock validation from real-model acceptance.
 
 - `python -m pip install -e '.[dev]'`: install the CPU development package.
 - `ruff check src tests`: run configured static checks.
 - `pytest`: run tests; missing optional hardware produces explicit skips.
-- `echo-s2tt serve --backend mock`: demonstrate transport without translating speech.
-- `echo-s2tt web`: serve the microphone interface on localhost.
-- `echo-s2tt serve --config configs/5090_2b.json`: load model paths and runtime settings from local JSON; use the same configuration for `web`.
+- `python3 run_s2tt.py --help`: inspect the source entry without installing the project.
+- `bash deploy/start_server.sh`: use existing python3 and local 2B JSON settings.
+- `bash deploy/start_web.sh`: serve the microphone interface with the same settings.
 - `python scripts/download_echo.py --size 2B --root /path/to/models --report-dir reports`: download and verify a fixed ModelScope snapshot.
 
 Maintain separate CUDA, Ascend, and evaluation dependencies. Record actual installed versions; unverified combinations remain candidates.

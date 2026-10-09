@@ -12,5 +12,6 @@ jobs:
         with:
           python-version: ${{ matrix.python }}
       - run: python -m pip install -e '.[dev]'
-      - run: ruff check src tests
+      - run: ruff check run_s2tt.py src tests
+      - run: bash -n deploy/start_server.sh deploy/start_web.sh
       - run: pytest -m 'not real_model' --junitxml=cpu-contracts.xml
