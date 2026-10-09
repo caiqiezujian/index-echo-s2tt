@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import time
 from importlib.resources import files
 from pathlib import Path
@@ -15,6 +16,12 @@ from s2tt.parsing.echo import parse_echo
 from s2tt.types import Hypothesis, ModelBlocked
 
 LANGUAGE_NAMES = {"en": "English", "zh": "Chinese", "ja": "Japanese", "es": "Spanish"}
+
+
+def enable_offline_runtime():
+    # Set before importing Transformers / Hub: their offline flags are cached at import.
+    for name in ("HF_HUB_OFFLINE", "TRANSFORMERS_OFFLINE", "HF_HUB_DISABLE_TELEMETRY"):
+        os.environ[name] = "1"
 
 
 def verify_package(root: Path, size: str, manifest_path=None):
@@ -46,6 +53,7 @@ class IndexEchoBackend:
         self.max_new_tokens = max_new_tokens
         if not 32 <= max_new_tokens <= 8192:
             raise ValueError("max_new_tokens must be between 32 and 8192")
+        enable_offline_runtime()
         import torch
         import transformers
         from safetensors.torch import load_file
@@ -175,5 +183,6 @@ class IndexEchoBackend:
             "model_size": self.size, "model_revision": self.revision, "audio_frames": valid_frames,
             "audio_tokens": len(embedding), "model_elapsed_seconds": time.monotonic() - started,
             "direction_status": "experimental", "cross_update_cache": False,
+            "local_files_only": True, "external_api_used": False,
         }
         return parse_echo(raw, task.snapshot, stop_reason=reason, generated_tokens=token_count, metadata=metadata)

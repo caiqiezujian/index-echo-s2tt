@@ -15,6 +15,33 @@
 
 完整 2B 包约 5.90GB，9B 约 19.26GB。模型存放仓库之外。不要额外下载完整基础 Qwen3-Omni 或另一个文本解码器。
 
+## 本地配置与离线运行
+
+统一配置采用本地 **JSON**，入口为 `configs/5090_2b.json` 和 `configs/5090_9b.json`。无需 YAML 依赖。修改配置中的 Linux 本地路径后即可启动；配置文件及权重都从本机读取。
+
+| 配置项 | 作用 |
+|---|---|
+| `backend.model_dir` | 完整 Echo 包的本地目录，包含根目录音频组件和 `llm/` |
+| `backend.kind/size/device/max_new_tokens` | echo/mock、2B/9B、CUDA 设备、输出 token 上限 |
+| `session` | 语言方向、更新间隔、缓存上限、静音阈值、提交策略、历史和术语表 |
+| `server` | WebSocket 监听地址/端口、允许的网页来源、日志目录、输入空闲超时 |
+| `web` | 网页监听地址/端口；可选 `websocket_url` 指定浏览器使用的转发地址 |
+| `replay` / `probe` | 可选的本地输入/输出路径，以及回放或前缀探测参数 |
+
+默认 2B 路径为 `/root/autodl-tmp/index-echo/models/Index-Echo-S2TT-2B`，日志写入 `/root/autodl-tmp/index-echo/reports/live`。实际目录不同就修改对应字段；更改端口时也要同步 `server.origins` 和 SSH 转发端口。
+
+```bash
+echo-s2tt serve --config configs/5090_2b.json
+# 另一个终端使用同一份配置：
+echo-s2tt web --config configs/5090_2b.json
+```
+
+显式命令参数优先于配置文件；模型路径优先级为 `--model-dir` → `backend.model_dir` → `ECHO_MODEL_DIR`。配置内相对路径以配置文件所在目录为基准，命令行相对路径以当前工作目录为基准。未知字段/非法类型报错，避免拼写错误被静默忽略。旧启动命令继续可用。
+
+网页从本地服务读取连接地址和术语表默认值；未配置 `web.websocket_url` 时使用 `ws://127.0.0.1:<server.port>`。鉴权令牌仍通过本机环境变量 `S2TT_AUTH_TOKEN` 设置，不写入配置或网页默认值。
+
+**依赖安装和权重下载完成后，应用推理不需要互联网、ModelScope/Hugging Face 服务或第三方 API。** 真实后端在导入框架前启用 `HF_HUB_OFFLINE=1`、`TRANSFORMERS_OFFLINE=1` 和 `HF_HUB_DISABLE_TELEMETRY=1`；模型/tokenizer 加载限定 `local_files_only=True`。本地文件缺失或校验失败返回 BLOCKED，不自动下载或切换模型。安装器和下载脚本是独立、需要联网的准备步骤；浏览器 HTTP/WebSocket 是访问你自己的服务，可使用 localhost/SSH 转发。完全隔离服务器需要提前准备依赖 wheel 等安装材料。离线标志的含义见 [Hub 官方说明](https://huggingface.co/docs/huggingface_hub/package_reference/environment_variables#hfhuboffline)。
+
 ## 本地代码检查与模拟演示
 
 Python 3.10+ 可运行纯逻辑；服务器真实模型环境采用 Python 3.12。
@@ -102,6 +129,8 @@ ssh -p <SSH端口> -L 8080:127.0.0.1:8080 -L 8765:127.0.0.1:8765 root@<AutoDL主
 ```
 
 在服务器另一个终端执行 `echo-s2tt web`；本地打开 `http://127.0.0.1:8080`。麦克风权限通过浏览器申请。公网部署自行配置 HTTPS、WSS 与反向代理；非 loopback WebSocket 绑定要求设置 `S2TT_AUTH_TOKEN`，并通过 `--origin` 显式允许网页来源。
+
+也可按“本地配置与离线运行”一节让服务和网页同时读取同一份配置，省去重复传入路径和端口。
 
 ## 策略、边界与已知限制
 

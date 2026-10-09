@@ -2,6 +2,8 @@
 const el = (id) => document.getElementById(id);
 let socket, context, stream, node, sequence = 0, offset = 0, lastEvent = 0, corrections = 0;
 let flushResolve, readyResolve, readyReject;
+const languageNames = {en: '英语', zh: '中文', ja: '日语', es: '西班牙语'};
+function direction(source, target) { return `${languageNames[source] || source} → ${languageNames[target] || target}`; }
 function status(text) { el('status').textContent = text; }
 function controls(active) { el('start').disabled = active; el('stop').disabled = !active; el('cancel').disabled = !active; }
 function sendAudio(samples) {
@@ -20,7 +22,9 @@ function onEvent(event) {
   if (event.event_seq && event.event_seq <= lastEvent) return;
   if (event.event_seq) lastEvent = event.event_seq;
   if (event.type === 'Ready') {
-    el('badge').textContent = event.model_kind === 'mock' ? '模拟模式 · 不进行翻译' : 'Echo · 英译中待验证';
+    const route = direction(event.source_language, event.target_language);
+    el('direction').textContent = route;
+    el('badge').textContent = event.model_kind === 'mock' ? '模拟模式 · 不进行翻译' : `Echo · ${route}待验证`;
     readyResolve?.(); return;
   }
   if (Number.isFinite(event.received_end_sample)) {
@@ -70,7 +74,7 @@ async function start() {
       if (stream) { status('连接中断，当前会话不可恢复'); cleanup(); controls(false); }
     };
     socket.onopen = () => socket.send(JSON.stringify({type: 'Start', protocol_version: 1,
-      source_language: 'en', target_language: 'zh', sample_rate: context.sampleRate, channels: 1,
+      sample_rate: context.sampleRate, channels: 1,
       token: el('token').value, glossary: el('glossary').value.split('\n').map((s) => s.trim()).filter(Boolean)}));
     let readyTimeout;
     try { await Promise.race([ready, new Promise((_, reject) => { readyTimeout = setTimeout(() => reject(new Error('服务启动响应超时')), 15000); })]); }
@@ -107,4 +111,17 @@ function cancel(message = '已取消本次会话') {
   cleanup(); controls(false); status(message);
 }
 el('start').onclick = start; el('stop').onclick = stop; el('cancel').onclick = () => cancel();
+async function loadDefaults() {
+  el('start').disabled = true;
+  try {
+    const response = await fetch('runtime-config.json', {cache: 'no-store'});
+    if (!response.ok) throw new Error('无法读取本地服务配置');
+    const settings = await response.json();
+    el('address').value = settings.websocket_url;
+    el('glossary').value = settings.glossary.join('\n');
+    el('direction').textContent = direction(settings.source_language, settings.target_language);
+    el('start').disabled = false;
+  } catch (error) { status(error.message); }
+}
+loadDefaults();
 window.addEventListener('beforeunload', () => { stream?.getTracks().forEach((track) => track.stop()); socket?.close(); });

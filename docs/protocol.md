@@ -12,6 +12,8 @@
 
 如设置服务鉴权，额外带 `token`。允许 PCM16LE，16k/44.1k/48k，1 或 2 通道；双通道取均值。非16k 输入经过有状态 FIR 和插值，31 个输入样本滤波延迟单独记录。先等 Ready，再发音频。
 
+Start 省略语言、术语表、采样率或通道字段时继承服务端本地配置；显式字段覆盖默认值，`glossary:[]` 明确清空术语。浏览器使用实际采集的采样率，语言方向继承服务端配置。网页的 `/runtime-config.json` 仅提供连接地址、语言和术语默认值，不提供模型路径或鉴权令牌；该请求访问本地部署的网页服务。
+
 ## Audio / End / Cancel / Ack
 
 音频二进制：12字节 little-endian 头，`uint32 frame_seq`、`uint64 first_sample`，后接 interleaved PCM16LE。`first_sample` 单位是输入采样率下的 sample frame，立体声每帧含两个样本。序号从0开始，offset从0开始；20–40ms为推荐包长，单包上限2秒。

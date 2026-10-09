@@ -76,6 +76,32 @@ def test_websocket_start_audio_end_and_single_session_admission(tmp_path, speech
 
 
 @pytest.mark.integration
+def test_websocket_uses_local_language_and_glossary_defaults(tmp_path, speech_pcm):
+    class TrackingMock(MockBackend):
+        def infer(self, task):
+            assert (task.source_language, task.target_language) == ("zh", "ja")
+            assert task.glossary == ("Echo → エコー",)
+            return super().infer(task)
+
+    async def run():
+        service = WebSocketService(TrackingMock(), SessionConfig(source_language="zh", target_language="ja",
+                                   glossary=("Echo:エコー",), update_seconds=0.1), report_dir=tmp_path)
+        try:
+            async with serve(service.handle, "127.0.0.1", 0) as server:
+                uri = f"ws://127.0.0.1:{server.sockets[0].getsockname()[1]}"
+                async with connect(uri) as connection:
+                    await connection.send(json.dumps({"type": "Start", "protocol_version": 1}))
+                    ready = await until(connection, "Ready")
+                    assert (ready["source_language"], ready["target_language"]) == ("zh", "ja")
+                    await connection.send(pack_audio(0, 0, speech_pcm(0.2)))
+                    await connection.send(json.dumps({"type": "End", "last_frame_seq": 0}))
+                    assert (await until(connection, "StreamEnd"))["complete"]
+        finally:
+            service._executor.shutdown(wait=True)
+    asyncio.run(run())
+
+
+@pytest.mark.integration
 def test_websocket_gap_becomes_visible_error(tmp_path, speech_pcm):
     async def run():
         service = WebSocketService(MockBackend(), SessionConfig(), report_dir=tmp_path)

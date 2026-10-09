@@ -63,13 +63,13 @@ class WebSocketService:
                     raise ProtocolError("Session recovery is unsupported; start a fresh session")
                 if self.auth_token and not hmac.compare_digest(str(start.get("token", "")).encode(), self.auth_token.encode()):
                     raise ProtocolError("Authentication failed")
-                glossary = start.get("glossary", [])
+                glossary = start.get("glossary", list(self.config.glossary))
                 if not isinstance(glossary, list) or not all(isinstance(term, str) for term in glossary):
                     raise ProtocolError("Glossary must be a list of strings")
-                config = replace(self.config, sample_rate=start.get("sample_rate", 16000),
-                                 channels=start.get("channels", 1), glossary=tuple(glossary),
-                                 source_language=start.get("source_language", "en"),
-                                 target_language=start.get("target_language", "zh"))
+                config = replace(self.config, sample_rate=start.get("sample_rate", self.config.sample_rate),
+                                 channels=start.get("channels", self.config.channels), glossary=tuple(glossary),
+                                 source_language=start.get("source_language", self.config.source_language),
+                                 target_language=start.get("target_language", self.config.target_language))
                 trace = TraceWriter(self.report_dir / f"{uuid.uuid4().hex}.jsonl")
                 core = SessionCore(config, model_kind=self.backend.model_kind, model_revision=self.backend.revision,
                                    on_event=emit)

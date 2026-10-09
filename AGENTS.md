@@ -15,9 +15,12 @@ Use an isolated project environment. Distinguish CPU/mock validation from real-m
 - `pytest`: run tests; missing optional hardware produces explicit skips.
 - `echo-s2tt serve --backend mock`: demonstrate transport without translating speech.
 - `echo-s2tt web`: serve the microphone interface on localhost.
+- `echo-s2tt serve --config configs/5090_2b.json`: load model paths and runtime settings from local JSON; use the same configuration for `web`.
 - `python scripts/download_echo.py --size 2B --root /path/to/models --report-dir reports`: download and verify a fixed ModelScope snapshot.
 
 Maintain separate CUDA, Ascend, and evaluation dependencies. Record actual installed versions; unverified combinations remain candidates.
+
+Inference uses verified local artifacts and offline framework flags. Missing files must fail explicitly; downloading is a separate preparation operation.
 
 ## Coding Style & Naming Conventions
 

@@ -7,28 +7,33 @@ import os
 import sys
 from pathlib import Path
 
+from s2tt.configuration import load_settings, local_path, option
 from s2tt.core.session import SessionConfig
 from s2tt.types import ModelBlocked
 
 
 def build_backend(args, settings):
-    if args.backend == "mock":
+    if option(args, settings, "backend", "kind", "echo", argument="backend") == "mock":
         from s2tt.backends.mock import MockBackend
         return MockBackend()
-    if not args.model_dir:
-        raise ModelBlocked("Provide --model-dir or ECHO_MODEL_DIR with the complete S2TT package")
+    model_dir = option(args, settings, "backend", "model_dir", os.environ.get("ECHO_MODEL_DIR"))
+    if not model_dir:
+        raise ModelBlocked("Set backend.model_dir in local JSON, --model-dir or ECHO_MODEL_DIR with the complete S2TT package")
+    model_dir = local_path(str(model_dir))
+    max_new_tokens = option(args, settings, "backend", "max_new_tokens", 512)
+    if not 32 <= max_new_tokens <= 8192:
+        raise ValueError("max_new_tokens must be between 32 and 8192")
     from s2tt.backends.index_echo import IndexEchoBackend
-    backend = settings.get("backend", {})
     try:
-        return IndexEchoBackend(args.model_dir, args.size or backend.get("size", "2B"),
-                                args.device or backend.get("device", "cuda:0"),
-                                args.max_new_tokens or backend.get("max_new_tokens", 512))
+        return IndexEchoBackend(model_dir, option(args, settings, "backend", "size", "2B"),
+                                option(args, settings, "backend", "device", "cuda:0"),
+                                max_new_tokens)
     except ImportError as error:
         raise ModelBlocked(f"Real-model runtime dependency unavailable: {error}") from error
 
 
 def configuration(args):
-    settings = json.loads(Path(args.config).read_text(encoding="utf-8")) if args.config else {}
+    settings = load_settings(args.config)
     session = settings.get("session", {}).copy()
     for name in ("source_language", "target_language", "policy"):
         if getattr(args, name, None) is not None:
@@ -43,31 +48,33 @@ def parser():
     commands = root.add_subparsers(dest="command", required=True)
     for name in ("serve", "replay", "probe"):
         command = commands.add_parser(name)
-        command.add_argument("--backend", choices=("echo", "mock"), default="echo")
-        command.add_argument("--model-dir", default=os.environ.get("ECHO_MODEL_DIR"))
+        command.add_argument("--backend", choices=("echo", "mock"))
+        command.add_argument("--model-dir")
         command.add_argument("--size", choices=("2B", "9B"))
         command.add_argument("--device")
         command.add_argument("--max-new-tokens", type=int)
-        command.add_argument("--config")
+        command.add_argument("--config", help="Local JSON settings; explicit command arguments take precedence")
         command.add_argument("--source-language")
         command.add_argument("--target-language")
         command.add_argument("--policy", choices=("la2", "boundary"))
         if name == "serve":
-            command.add_argument("--host", default="127.0.0.1")
-            command.add_argument("--port", type=int, default=8765)
+            command.add_argument("--host")
+            command.add_argument("--port", type=int)
             command.add_argument("--origin", action="append")
-            command.add_argument("--report-dir", default="reports/live")
+            command.add_argument("--report-dir")
+            command.add_argument("--idle-timeout", type=float)
         else:
-            command.add_argument("input", type=Path)
-            command.add_argument("--out", required=True, type=Path)
+            command.add_argument("input", nargs="?", type=Path)
+            command.add_argument("--out", type=Path)
             if name == "replay":
-                command.add_argument("--mode", choices=("causal_fast", "wallclock_1x"), default="causal_fast")
-                command.add_argument("--packet-ms", type=int, default=40)
+                command.add_argument("--mode", choices=("causal_fast", "wallclock_1x"))
+                command.add_argument("--packet-ms", type=int)
             else:
-                command.add_argument("--prefix-seconds", default="2,4,8,full")
+                command.add_argument("--prefix-seconds")
     web = commands.add_parser("web")
-    web.add_argument("--host", default="127.0.0.1")
-    web.add_argument("--port", type=int, default=8080)
+    web.add_argument("--config", help="Local JSON settings")
+    web.add_argument("--host")
+    web.add_argument("--port", type=int)
     summary = commands.add_parser("summarize")
     summary.add_argument("trace", type=Path)
     score = commands.add_parser("score")
@@ -127,13 +134,16 @@ def run_probe(args, backend, config):
 def main(argv=None):
     args = parser().parse_args(argv)
     try:
+        settings, config = configuration(args) if args.command in ("serve", "replay", "probe", "web") else ({}, None)
         if args.command == "web":
-            from functools import partial
-            from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
-            from importlib.resources import files
-            directory = str(files("s2tt").joinpath("web"))
-            with ThreadingHTTPServer((args.host, args.port), partial(SimpleHTTPRequestHandler, directory=directory)) as http:
-                print(f"Browser demo: http://{args.host}:{args.port}", flush=True)
+            from http.server import ThreadingHTTPServer
+
+            from s2tt.transports.webpage import browser_handler
+            host, port = option(args, settings, "web", "host", "127.0.0.1"), option(args, settings, "web", "port", 8080)
+            if not 1 <= port <= 65535:
+                raise ValueError("Web port must be between 1 and 65535")
+            with ThreadingHTTPServer((host, port), browser_handler(settings, config)) as http:
+                print(f"Browser demo: http://{host}:{port}", flush=True)
                 http.serve_forever()
             return 0
         if args.command == "summarize":
@@ -144,15 +154,33 @@ def main(argv=None):
             from s2tt.evaluation.quality import score_text_files
             print(json.dumps(score_text_files(args.hypotheses, args.references), ensure_ascii=False, indent=2))
             return 0
-        settings, config = configuration(args)
+        if args.command in ("replay", "probe"):
+            for name in ("input", "out"):
+                value = option(args, settings, args.command, name)
+                if value is None:
+                    raise ValueError(f"Provide {args.command}.{name} in JSON or the corresponding command argument")
+                setattr(args, name, local_path(str(value)))
+            if args.command == "replay":
+                args.mode = option(args, settings, "replay", "mode", "causal_fast")
+                args.packet_ms = option(args, settings, "replay", "packet_ms", 40)
+                if not 1 <= args.packet_ms <= 2000:
+                    raise ValueError("packet_ms must be between 1 and 2000")
+            else:
+                args.prefix_seconds = option(args, settings, "probe", "prefix_seconds", "2,4,8,full")
         backend = build_backend(args, settings)
         if args.command == "serve":
             from s2tt.transports.websocket import WebSocketService
-            service = WebSocketService(backend, config, report_dir=args.report_dir,
-                                       auth_token=os.environ.get("S2TT_AUTH_TOKEN"))
-            origins = [None, *(args.origin or ["http://127.0.0.1:8080", "http://localhost:8080"])]
-            print(f"Backend={backend.model_kind}; WebSocket ws://{args.host}:{args.port}", flush=True)
-            asyncio.run(service.serve(args.host, args.port, origins))
+            host, port = option(args, settings, "server", "host", "127.0.0.1"), option(args, settings, "server", "port", 8765)
+            idle_timeout = option(args, settings, "server", "idle_timeout", 60)
+            if not 1 <= port <= 65535 or idle_timeout <= 0:
+                raise ValueError("Invalid server port or idle timeout")
+            service = WebSocketService(backend, config,
+                                       report_dir=option(args, settings, "server", "report_dir", "reports/live"),
+                                       idle_timeout=idle_timeout, auth_token=os.environ.get("S2TT_AUTH_TOKEN"))
+            origins = [None, *option(args, settings, "server", "origins",
+                                    ["http://127.0.0.1:8080", "http://localhost:8080"], argument="origin")]
+            print(f"Backend={backend.model_kind}; WebSocket ws://{host}:{port}", flush=True)
+            asyncio.run(service.serve(host, port, origins))
             return 0
         if args.command == "replay":
             from s2tt.evaluation.replay import replay_wav
